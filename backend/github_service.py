@@ -1,5 +1,11 @@
 import requests
 from typing import Optional
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN") 
 
 IMPORTANT_FILES = [
     "README.md", "readme.md", "README.rst",
@@ -20,9 +26,11 @@ def parse_github_url(url: str) -> tuple[str, str]:
     return parts[0], parts[1]
 
 def fetch_repo_tree(owner: str, repo: str) -> list[dict]:
-    """Fetch flat file tree of the repo (default branch)."""
     url = f"https://api.github.com/repos/{owner}/{repo}/git/trees/HEAD?recursive=1"
-    response = requests.get(url, headers={"Accept": "application/vnd.github+json"})
+    headers={"Accept": "application/vnd.github+json"}
+    if GITHUB_TOKEN:
+        headers["Authorization"] = f"Bearer {GITHUB_TOKEN}"
+    response = requests.get(url, headers=headers)    
     if response.status_code == 404:
         raise ValueError("Repo not found or is private.")
     response.raise_for_status()
@@ -32,7 +40,10 @@ def fetch_repo_tree(owner: str, repo: str) -> list[dict]:
 def fetch_file_content(owner: str, repo: str, path: str) -> Optional[str]:
     """Fetch raw content of a single file."""
     url = f"https://raw.githubusercontent.com/{owner}/{repo}/HEAD/{path}"
-    response = requests.get(url)
+    headers = {}
+    if GITHUB_TOKEN:
+        headers["Authorization"] = f"Bearer {GITHUB_TOKEN}"
+    response = requests.get(url, headers=headers)
     if response.status_code != 200:
         return None
     content = response.text
@@ -41,12 +52,6 @@ def fetch_file_content(owner: str, repo: str, path: str) -> Optional[str]:
     return content
 
 def get_repo_context(github_url: str) -> dict:
-    """
-    Main function. Returns:
-    - repo name
-    - full folder structure (paths only)
-    - content of important files
-    """
     owner, repo = parse_github_url(github_url)
     tree = fetch_repo_tree(owner, repo)
 
