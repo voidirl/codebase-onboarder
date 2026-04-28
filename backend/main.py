@@ -26,7 +26,7 @@ class ChatRequest(BaseModel):
 
 @app.get("/")    
 def root():
-    return {"message": "Welcome to the GitHub Onboarding API"}
+    return {"status" : "ok", "message": "Welcome to the GitHub Onboarding API"}
 
 @app.post("/analyze")
 def analyze_repo(request: AnalyzeRequest):
