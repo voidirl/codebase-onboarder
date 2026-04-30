@@ -19,5 +19,3 @@ cd frontend && npm run dev
 
 Needs `GROQ_API_KEY` and `GITHUB_TOKEN` in `backend/.env`, `VITE_API_BASE` in `frontend/.env`.
 
-## Author
-[voidirl](https://github.com/voidirl)
