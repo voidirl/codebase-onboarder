@@ -1,12 +1,13 @@
 # Codebase Onboarder
 
-Drop a GitHub URL, get an onboarding doc + a chat interface to ask questions about the codebase.
+Drop a GitHub URL, get an onboarding doc + chat interface to ask questions about the codebase.
 
-Built with FastAPI, React, and Groq.
-Backend is a REST API built with FastAPI that fetches repo data via GitHub API and generates docs using Groq. Frontend is a React app that consumes the API and renders the output with a chat interface.
+**Live:** https://codebase-onboarder.vercel.app | **API:** https://codebase-onboarder.onrender.com
 
-## Setup
+## Stack
+FastAPI + Groq (LLaMA 3.3-70b) + GitHub API · React + Vite
 
+## Local Setup
 ```bash
 # backend
 cd backend && source .venv/bin/activate
@@ -16,7 +17,7 @@ uvicorn main:app --reload --port 8000
 cd frontend && npm run dev
 ```
 
-Needs `GROQ_API_KEY` and `GITHUB_TOKEN` in `backend/.env`.
+Needs `GROQ_API_KEY` and `GITHUB_TOKEN` in `backend/.env`, `VITE_API_BASE` in `frontend/.env`.
 
 ## Author
 [voidirl](https://github.com/voidirl)
