@@ -5,17 +5,35 @@ import os
 
 load_dotenv()
 
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN") 
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 
 IMPORTANT_FILES = [
-    "README.md", "readme.md", "README.rst",
-    "main.py", "app.py", "index.py", "server.py", "run.py",
-    "main.js", "index.js", "app.js", "server.js",
-    "main.ts", "index.ts", "app.ts",
-    "package.json", "requirements.txt", "pyproject.toml",
-    "docker-compose.yml", "Dockerfile", ".env.example",
-    "pom.xml", "build.gradle", "Makefile",
+    "README.md",
+    "readme.md",
+    "README.rst",
+    "main.py",
+    "app.py",
+    "index.py",
+    "server.py",
+    "run.py",
+    "main.js",
+    "index.js",
+    "app.js",
+    "server.js",
+    "main.ts",
+    "index.ts",
+    "app.ts",
+    "package.json",
+    "requirements.txt",
+    "pyproject.toml",
+    "docker-compose.yml",
+    "Dockerfile",
+    ".env.example",
+    "pom.xml",
+    "build.gradle",
+    "Makefile",
 ]
+
 
 def parse_github_url(url: str) -> tuple[str, str]:
     """Extract owner and repo name from GitHub URL."""
@@ -25,17 +43,19 @@ def parse_github_url(url: str) -> tuple[str, str]:
         raise ValueError("Invalid GitHub URL. Format: https://github.com/owner/repo")
     return parts[0], parts[1]
 
+
 def fetch_repo_tree(owner: str, repo: str) -> list[dict]:
     url = f"https://api.github.com/repos/{owner}/{repo}/git/trees/HEAD?recursive=1"
-    headers={"Accept": "application/vnd.github+json"}
+    headers = {"Accept": "application/vnd.github+json"}
     if GITHUB_TOKEN:
         headers["Authorization"] = f"Bearer {GITHUB_TOKEN}"
-    response = requests.get(url, headers=headers)    
+    response = requests.get(url, headers=headers)
     if response.status_code == 404:
         raise ValueError("Repo not found or is private.")
     response.raise_for_status()
     tree = response.json().get("tree", [])
     return [item for item in tree if item["type"] == "blob"]
+
 
 def fetch_file_content(owner: str, repo: str, path: str) -> Optional[str]:
     """Fetch raw content of a single file."""
@@ -50,6 +70,7 @@ def fetch_file_content(owner: str, repo: str, path: str) -> Optional[str]:
     if len(content) > 3000:
         content = content[:3000] + "\n\n... [truncated]"
     return content
+
 
 def get_repo_context(github_url: str) -> dict:
     owner, repo = parse_github_url(github_url)
