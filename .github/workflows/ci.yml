@@ -1,0 +1,33 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+ 
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt   
+
+      - name: Install lint tools
+        run: pip install flake8 black  
+
+      - name: Lint with flake8
+        run: flake8 backend --exclude=backend/venv --max-line-length=120
+
+      - name: Check formatting with black
+        run: black --check backend --exclude=backend/venv  
+        
