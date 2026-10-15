@@ -59,8 +59,7 @@ function App() {
   if (phase === 'input' || phase === 'loading') {
     return (
       <div className="container">
-        <div className="hero-badge">AI-Powered</div>
-        <h1>Codebase Onboarder</h1>
+        <h1 className="hero-title">Codebase Onboarder</h1>
         <p className="subtitle">Paste a GitHub repo URL and get an onboarding guide instantly</p>
         <div className="input-row">
           <input
@@ -103,13 +102,13 @@ function App() {
         <div className="chat-messages">
           {chatHistory.length === 0 && (
             <div className="chat-empty">
-              <p>🤖 Ask anything about <strong>{repoId}</strong></p>
+              <p>Ask anything about <strong>{repoId}</strong></p>
               <p className="chat-empty-sub">Architecture, setup, key files, how things work...</p>
             </div>
           )}
           {chatHistory.map((msg, i) => (
             <div key={i} className={`chat-msg ${msg.role}`}>
-              <span className="msg-label">{msg.role === 'user' ? '🧑 You' : '🤖 AI'}</span>
+              <span className="msg-label">{msg.role === 'user' ? 'You' : 'Assistant'}</span>
               <div className="msg-content">
                 <ReactMarkdown>{msg.content}</ReactMarkdown>
               </div>
@@ -117,7 +116,7 @@ function App() {
           ))}
           {chatLoading && (
             <div className="chat-msg assistant">
-              <span className="msg-label">🤖 AI</span>
+              <span className="msg-label">Assistant</span>
               <div className="msg-content typing">
                 <span /><span /><span />
               </div>
