@@ -1,11 +1,15 @@
+import re
 import requests
 from typing import Optional
+from urllib.parse import urlparse
 from dotenv import load_dotenv
 import os
 
 load_dotenv()
 
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+
+OWNER_REPO_RE = re.compile(r"^[A-Za-z0-9._-]+$")
 
 IMPORTANT_FILES = [
     "README.md",
@@ -36,12 +40,41 @@ IMPORTANT_FILES = [
 
 
 def parse_github_url(url: str) -> tuple[str, str]:
-    """Extract owner and repo name from GitHub URL."""
-    url = url.rstrip("/").replace("https://github.com/", "")
-    parts = url.split("/")
+    """Extract owner and repo name from a GitHub URL.
+
+    Accepts forms like:
+      https://github.com/owner/repo
+      http://www.github.com/owner/repo.git
+      github.com/owner/repo/tree/main
+    """
+    raw = (url or "").strip()
+    if not raw:
+        raise ValueError("Invalid GitHub URL. Format: https://github.com/owner/repo")
+
+    if "://" not in raw:
+        raw = "https://" + raw
+
+    parsed = urlparse(raw)
+    host = parsed.netloc.lower()
+    if host.startswith("www."):
+        host = host[4:]
+    if host != "github.com":
+        raise ValueError(
+            "Invalid GitHub URL. Please provide a github.com repository URL."
+        )
+
+    parts = [p for p in parsed.path.split("/") if p]
     if len(parts) < 2:
         raise ValueError("Invalid GitHub URL. Format: https://github.com/owner/repo")
-    return parts[0], parts[1]
+
+    owner, repo = parts[0], parts[1]
+    if repo.endswith(".git"):
+        repo = repo[:-4]
+
+    if not OWNER_REPO_RE.match(owner) or not OWNER_REPO_RE.match(repo):
+        raise ValueError("Invalid GitHub URL. Format: https://github.com/owner/repo")
+
+    return owner, repo
 
 
 def fetch_repo_tree(owner: str, repo: str) -> list[dict]:
@@ -49,10 +82,22 @@ def fetch_repo_tree(owner: str, repo: str) -> list[dict]:
     headers = {"Accept": "application/vnd.github+json"}
     if GITHUB_TOKEN:
         headers["Authorization"] = f"Bearer {GITHUB_TOKEN}"
-    response = requests.get(url, headers=headers)
+
+    response = requests.get(url, headers=headers, timeout=20)
+
+    if response.status_code == 401 and "Authorization" in headers:
+        # Token is invalid/expired; retry unauthenticated (works for public repos).
+        headers.pop("Authorization", None)
+        response = requests.get(url, headers=headers, timeout=20)
+
     if response.status_code == 404:
-        raise ValueError("Repo not found or is private.")
+        raise ValueError(f"Repository '{owner}/{repo}' was not found or is private.")
+    if response.status_code == 409:
+        raise ValueError(f"Repository '{owner}/{repo}' is empty.")
+    if response.status_code == 403:
+        raise ValueError("GitHub API rate limit reached. Please try again later.")
     response.raise_for_status()
+
     tree = response.json().get("tree", [])
     return [item for item in tree if item["type"] == "blob"]
 
@@ -63,7 +108,10 @@ def fetch_file_content(owner: str, repo: str, path: str) -> Optional[str]:
     headers = {}
     if GITHUB_TOKEN:
         headers["Authorization"] = f"Bearer {GITHUB_TOKEN}"
-    response = requests.get(url, headers=headers)
+    try:
+        response = requests.get(url, headers=headers, timeout=20)
+    except requests.RequestException:
+        return None
     if response.status_code != 200:
         return None
     content = response.text

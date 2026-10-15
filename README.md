@@ -5,7 +5,7 @@ Drop a GitHub URL, get an onboarding doc + chat interface to ask questions about
 **Live:** https://codebase-onboarder.vercel.app | **API:** https://codebase-onboarder.onrender.com
 
 ## Stack
-FastAPI + Groq (LLaMA 3.3-70b) + GitHub API · React + Vite
+FastAPI + Groq (GPT-OSS 120B) + GitHub API · React + Vite
 
 ## Local Setup
 ```bash

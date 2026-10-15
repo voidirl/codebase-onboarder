@@ -25,7 +25,7 @@ function App() {
     setError(null)
     setPhase('loading')
     try {
-      const res = await axios.post(`${API_BASE}/analyze`, { github_url: githubUrl })
+      const res = await axios.post(`${API_BASE}/analyze`, { github_url: githubUrl.trim() })
       setRepoId(res.data.repo_id)
       setOnboardingDoc(res.data.onboarding_doc)
       setChatHistory([])

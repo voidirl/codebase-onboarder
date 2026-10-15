@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-MODEL = "llama-3.3-70b-versatile"
+MODEL = "openai/gpt-oss-120b"
 
 
 def generate_onboarding(repo_context: dict) -> str:
@@ -43,6 +43,7 @@ def generate_onboarding(repo_context: dict) -> str:
         messages=[{"role": "user", "content": prompt}],
         temperature=0.3,
         max_tokens=4096,
+        reasoning_effort="low",
     )
     return response.choices[0].message.content
 
@@ -74,7 +75,11 @@ def answer_question(question: str, repo_context: dict, chat_history: list[dict])
     messages.append({"role": "user", "content": question})
 
     response = client.chat.completions.create(
-        model=MODEL, messages=messages, temperature=0.3, max_tokens=2048
+        model=MODEL,
+        messages=messages,
+        temperature=0.3,
+        max_tokens=2048,
+        reasoning_effort="low",
     )
 
     return response.choices[0].message.content
